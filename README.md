@@ -17,25 +17,6 @@
         <img src="https://img.shields.io/badge/Лицензия-GPLV_3-green"/>
       </a>
       <a href="https://t.me/kinposkbot" target="_blank">
-        <img src="https://img.shields.io/badge/Telegram-Channel-blue"/>
-      </a>
-    </p>
-  </div>
-</div>
-
-<div align="center">
-  <p>
-    <a href="https://github.com/thisaccounthasbeendel">
-      <img src="./src/githubImage.png" alt="KinoposkBot" />
-    </a>
-  </p>
-  
-  <div>
-    <p>
-      <a href="./gnu-gpl-v3.0.md">
-        <img src="https://img.shields.io/badge/Лицензия-GPLV_3-green"/>
-      </a>
-      <a href="https://t.me/kinposkbot" target="_blank">
         <img src="https://img.shields.io/badge/Telegram-Канал-gray?logo=telegram&logoColor=ffffff&color=6A7EC2&labelColor=6b6b6b"/>
       </a>
     </p>
