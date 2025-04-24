@@ -1,5 +1,5 @@
 # Версия бота
-BOT_VERSION = "2.0.0.0"
+BOT_VERSION = "2.0.1.0"
 
 # Сообщение приветствия
 WELCOME_MESSAGE = (
