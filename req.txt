@@ -3,3 +3,4 @@ aiohttp
 environs
 redis[hiredis]>=5.0.1
 libtorrent
+requests

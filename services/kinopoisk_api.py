@@ -4,15 +4,18 @@ import json
 import time
 from typing import Optional, Tuple, Dict
 from core import load_config
+from services.kinopoisk_key_manager import KinopoiskApiKeyManager
+
 
 config = load_config()
+key_manager = KinopoiskApiKeyManager(config.KINOPOISK_API_KEYS)
 
 class KinopoiskAPI:
     def __init__(self):
         self.base_url = "https://kinopoiskapiunofficial.tech/api/v2.2"
-        self.api_key = config.KINOPOISK_API_KEY  # Сохраняем api_key
+        self.key_manager = key_manager
         self.headers = {
-            "X-API-KEY": self.api_key,
+            "X-API-KEY": self.key_manager.current_key,
             "Content-Type": "application/json"
         }
         self._filters_cache = None
@@ -99,30 +102,39 @@ class KinopoiskAPI:
         }
         
     async def _make_request(self, endpoint: str, params: dict = None) -> dict:
-        """Выполняет запрос к API"""
+        """Выполняет запрос к API с перебором ключей"""
         url = f"{self.base_url}/{endpoint}"
-        
         logging.info(f"[KINOPOISK API] Sending request to API")
         logging.info(f"[KINOPOISK API] Request params: {json.dumps(params, ensure_ascii=False)}")
-        # logging.info(f"[KINOPOISK API] Headers: {self.headers}")  # Используем self.headers
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, headers=self.headers) as response:
-                    status = response.status
-                    response_text = await response.text()
-                    logging.info(f"[KINOPOISK API] Response status: {status}")
-                    # logging.info(f"[KINOPOISK API] Response body: {response_text}")
-
-                    if status == 200:
-                        return await response.json()
-                    else:
-                        logging.error(f"[KINOPOISK API] Error response: {response_text}")
-                        return None
-                    
-        except Exception as e:
-            logging.error(f"[KINOPOISK API] Request error: {str(e)}")
-            return None
+        for _ in range(len(self.key_manager.api_keys)):
+            headers = {
+                "X-API-KEY": self.key_manager.current_key,
+                "Content-Type": "application/json"
+            }
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, params=params, headers=headers) as response:
+                        status = response.status
+                        response_text = await response.text()
+                        logging.info(f"[KINOPOISK API] Response status: {status}")
+                        if status == 200:
+                            return await response.json()
+                        elif status == 402:
+                            logging.warning(f"[KINOPOISK API] API key limit reached: {self.key_manager.current_key}. Switching key...")
+                            try:
+                                self.key_manager.next_key()
+                            except RuntimeError:
+                                logging.error(f"[KINOPOISK API] All API keys exhausted.")
+                                return None
+                            continue
+                        else:
+                            logging.error(f"[KINOPOISK API] Error response: {response_text}")
+                            return None
+            except Exception as e:
+                logging.error(f"[KINOPOISK API] Request error: {str(e)}")
+                return None
+        logging.error(f"[KINOPOISK API] No valid API keys left.")
+        return None
 
     @staticmethod
     async def parse_search_query(query: str) -> Tuple[str, Optional[int], Optional[str]]:

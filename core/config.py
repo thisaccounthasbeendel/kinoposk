@@ -11,7 +11,7 @@ class RedisConfig:
 @dataclass
 class Config:
     BOT_TOKEN: str
-    KINOPOISK_API_KEY: str
+    KINOPOISK_API_KEYS: list[str]
     redis: RedisConfig
 
 def load_config() -> Config:
@@ -31,8 +31,12 @@ def load_config() -> Config:
         password=env.str("REDIS_PASSWORD", None)
     )
         
+    api_keys_raw = env.str("KINOPOISK_API_KEYS")
+    api_keys = [k.strip() for k in api_keys_raw.split(",") if k.strip()]
+    if not api_keys:
+        raise ValueError("KINOPOISK_API_KEYS cannot be empty")
     return Config(
         BOT_TOKEN=bot_token,
-        KINOPOISK_API_KEY=env("KINOPOISK_API_KEY"),
+        KINOPOISK_API_KEYS=api_keys,
         redis=redis_config
     )
